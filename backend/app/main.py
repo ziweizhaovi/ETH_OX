@@ -29,4 +29,4 @@ async def root():
 # app.include_router(market_data.router, prefix="/api/v1/market", tags=["market"])
 
 # Include AI agent router
-app.include_router(ai_router, prefix="/api/v1/ai", tags=["ai"]) 
+app.include_router(ai_router, prefix="/api/v1/ai", tags=["AI"]) 
