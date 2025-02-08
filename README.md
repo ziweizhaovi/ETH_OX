@@ -19,35 +19,148 @@ ETH_OX/
 └── shared/             # Shared types and utilities
 ```
 
-## Getting Started
+## Project Setup Guide
 
 ### Prerequisites
+- Python 3.11 or higher
+- Node.js 18 or higher
+- npm or yarn
+- Git
 
-- Node.js >= 18
-- Python >= 3.10
-- npm (comes with Node.js)
-
-### Setup Instructions
-
-1. Clone the repository
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/ETH_OX.git
+git clone https://github.com/ziweizhaovi/ETH_OX.git
 cd ETH_OX
 ```
 
-2. Frontend Setup
+### 2. Backend Setup
+
+#### 2.1 Create and Activate Python Virtual Environment
+```bash
+cd backend
+python -m venv venv
+
+# On Windows
+.\venv\Scripts\activate
+
+# On macOS/Linux
+source venv/bin/activate
+```
+
+#### 2.2 Install Backend Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+#### 2.3 Set up Environment Variables
+Create a `.env` file in the `backend` directory with the following content:
+```env
+# API Configuration
+API_VERSION=v1
+DEBUG=True
+ENVIRONMENT=development
+
+# Server Configuration
+HOST=0.0.0.0
+PORT=8000
+
+# OpenAI Configuration
+OPENAI_API_KEY=your-openai-api-key-here
+```
+Replace `your-openai-api-key-here` with your actual OpenAI API key.
+
+#### 2.4 Run the Backend Server
+```bash
+# Make the run script executable (macOS/Linux only)
+chmod +x run.sh
+
+# Start the server
+./run.sh
+
+# Alternative command if run.sh doesn't work
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 --log-level debug
+```
+
+### 3. Frontend Setup
+
+#### 3.1 Install Frontend Dependencies
 ```bash
 cd frontend
 npm install
-npm run dev
+# or
+yarn install
 ```
 
-3. Backend Setup
+#### 3.2 Run the Frontend Development Server
 ```bash
-cd backend
-pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
+npm run dev
+# or
+yarn dev
 ```
+
+### 4. Verify the Setup
+
+1. Backend API should be running at: `http://localhost:8000`
+   - Visit `http://localhost:8000/docs` to see the API documentation
+   - You should see "Welcome to ETH_OX API" at `http://localhost:8000`
+
+2. Frontend should be running at: `http://localhost:3000`
+   - You should see the main dashboard with the AI chat interface
+
+### Common Issues and Solutions
+
+1. **OpenAI API Key Issues**
+   - Make sure your OpenAI API key is correctly set in the `.env` file
+   - The key should start with 'sk-'
+
+2. **Port Already in Use**
+   - If port 8000 is in use, you can kill the process:
+     ```bash
+     # On macOS/Linux
+     lsof -i :8000 | grep LISTEN | awk '{print $2}' | xargs kill -9
+     
+     # On Windows
+     netstat -ano | findstr :8000
+     taskkill /PID <PID> /F
+     ```
+
+3. **Python Import Errors**
+   - Make sure you're in the virtual environment (you should see `(venv)` in your terminal)
+   - Try reinstalling dependencies: `pip install -r requirements.txt`
+
+4. **Node.js Dependencies Issues**
+   - Clear npm cache: `npm cache clean --force`
+   - Delete `node_modules` and reinstall: 
+     ```bash
+     rm -rf node_modules
+     npm install
+     ```
+
+### Project Structure
+```
+ETH_OX/
+├── backend/               # FastAPI backend
+│   ├── app/
+│   │   ├── api/          # API endpoints
+│   │   ├── core/         # Core functionality
+│   │   └── main.py       # Main application file
+│   ├── venv/             # Python virtual environment
+│   ├── .env              # Environment variables
+│   └── requirements.txt  # Python dependencies
+│
+└── frontend/             # Next.js frontend
+    ├── app/             # Next.js 13+ app directory
+    ├── components/      # React components
+    ├── hooks/          # Custom React hooks
+    └── package.json    # Node.js dependencies
+```
+
+### Need Help?
+If you encounter any issues not covered here, please:
+1. Check the error logs
+2. Make sure all environment variables are set correctly
+3. Verify you're using the correct versions of Python and Node.js
+4. Contact the team for support
 
 ## Development
 
