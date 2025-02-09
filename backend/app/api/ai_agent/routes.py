@@ -3,6 +3,7 @@ from typing import Dict, Optional, List, Literal
 from pydantic import BaseModel, Field, validator
 from ...core.ai.agent import AIAgent
 from decimal import Decimal
+from ...core.trading.service import TradingService
 
 router = APIRouter()
 ai_agent = None
@@ -22,6 +23,7 @@ class TradeContext(BaseModel):
 class MessageRequest(BaseModel):
     message: str
     context: Optional[TradeContext] = None
+    wallet_address: Optional[str] = None
 
     @validator('message')
     def validate_message_content(cls, v):
@@ -88,5 +90,30 @@ async def clear_chat_history():
         agent = await get_ai_agent()
         agent.clear_history()
         return {"message": "Conversation history cleared successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/execute-trade")
+async def execute_trade(request: MessageRequest):
+    try:
+        agent = await get_ai_agent()
+        parsed_trade = agent.parse_trade_message(request.message)
+        
+        if not parsed_trade:
+            raise HTTPException(status_code=400, detail="Could not parse trade command")
+            
+        # Initialize trading service
+        trading_service = TradingService()
+        
+        # Execute the trade
+        result = await trading_service.execute_trade(
+            parsed_trade,
+            request.wallet_address or "default_wallet"
+        )
+        
+        if result["status"] == "error":
+            raise HTTPException(status_code=400, detail=result["error"])
+            
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 

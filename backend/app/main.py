@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.ai_agent.routes import router as ai_router
+from app.api.positions.routes import router as positions_router
 
 app = FastAPI(
     title="ETH_OX API",
@@ -29,4 +30,5 @@ async def root():
 # app.include_router(market_data.router, prefix="/api/v1/market", tags=["market"])
 
 # Include AI agent router
-app.include_router(ai_router, prefix="/api/v1/ai", tags=["AI"]) 
+app.include_router(ai_router, prefix="/api/ai_agent", tags=["ai"])
+app.include_router(positions_router, prefix="/api/v1/positions", tags=["positions"]) 

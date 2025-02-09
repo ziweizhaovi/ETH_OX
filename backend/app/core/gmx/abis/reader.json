@@ -1,0 +1,49 @@
+[
+    {
+        "inputs": [
+            {"internalType": "address", "name": "account", "type": "address"},
+            {"internalType": "address", "name": "collateralToken", "type": "address"},
+            {"internalType": "address", "name": "indexToken", "type": "address"},
+            {"internalType": "bool", "name": "isLong", "type": "bool"}
+        ],
+        "name": "getPosition",
+        "outputs": [
+            {"internalType": "uint256", "name": "size", "type": "uint256"},
+            {"internalType": "uint256", "name": "collateral", "type": "uint256"},
+            {"internalType": "uint256", "name": "averagePrice", "type": "uint256"},
+            {"internalType": "uint256", "name": "entryFundingRate", "type": "uint256"},
+            {"internalType": "uint256", "name": "reserveAmount", "type": "uint256"},
+            {"internalType": "int256", "name": "realizedPnl", "type": "int256"},
+            {"internalType": "uint256", "name": "lastIncreasedTime", "type": "uint256"}
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "account", "type": "address"},
+            {"internalType": "address[]", "name": "collateralTokens", "type": "address[]"},
+            {"internalType": "address[]", "name": "indexTokens", "type": "address[]"},
+            {"internalType": "bool[]", "name": "isLong", "type": "bool[]"}
+        ],
+        "name": "getPositions",
+        "outputs": [
+            {
+                "components": [
+                    {"internalType": "uint256", "name": "size", "type": "uint256"},
+                    {"internalType": "uint256", "name": "collateral", "type": "uint256"},
+                    {"internalType": "uint256", "name": "averagePrice", "type": "uint256"},
+                    {"internalType": "uint256", "name": "entryFundingRate", "type": "uint256"},
+                    {"internalType": "uint256", "name": "reserveAmount", "type": "uint256"},
+                    {"internalType": "int256", "name": "realizedPnl", "type": "int256"},
+                    {"internalType": "uint256", "name": "lastIncreasedTime", "type": "uint256"}
+                ],
+                "internalType": "struct IVault.Position[]",
+                "name": "",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+] 

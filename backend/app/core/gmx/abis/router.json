@@ -1,0 +1,34 @@
+[
+    {
+        "inputs": [
+            {"internalType": "address", "name": "account", "type": "address"},
+            {"internalType": "address", "name": "collateralToken", "type": "address"},
+            {"internalType": "address", "name": "indexToken", "type": "address"},
+            {"internalType": "uint256", "name": "sizeDelta", "type": "uint256"},
+            {"internalType": "bool", "name": "isLong", "type": "bool"},
+            {"internalType": "uint256", "name": "acceptablePrice", "type": "uint256"},
+            {"internalType": "uint256", "name": "executionFee", "type": "uint256"},
+            {"internalType": "bytes32", "name": "referralCode", "type": "bytes32"}
+        ],
+        "name": "createIncreasePosition",
+        "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "account", "type": "address"},
+            {"internalType": "address", "name": "collateralToken", "type": "address"},
+            {"internalType": "address", "name": "indexToken", "type": "address"},
+            {"internalType": "uint256", "name": "sizeDelta", "type": "uint256"},
+            {"internalType": "bool", "name": "isLong", "type": "bool"},
+            {"internalType": "uint256", "name": "acceptablePrice", "type": "uint256"},
+            {"internalType": "uint256", "name": "executionFee", "type": "uint256"},
+            {"internalType": "bytes32", "name": "referralCode", "type": "bytes32"}
+        ],
+        "name": "createDecreasePosition",
+        "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
+        "stateMutability": "payable",
+        "type": "function"
+    }
+] 

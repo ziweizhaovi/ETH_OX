@@ -6,7 +6,15 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { Transaction } from "./TransactionHistory"
+
+interface Transaction {
+  id: string
+  state: "initiated" | "in_progress" | "completed" | "failed"
+  asset: string
+  amount: string
+  timestamp: string
+  type: "LONG" | "SHORT"
+}
 
 interface TradeExecutionPanelProps {
   onTradeExecuted: (transaction: Transaction) => void
@@ -17,43 +25,53 @@ export function TradeExecutionPanel({ onTradeExecuted }: TradeExecutionPanelProp
   const [amount, setAmount] = useState("")
   const [stopLoss, setStopLoss] = useState("")
   const [aiAssisted, setAiAssisted] = useState(false)
-  let newTransaction: Transaction // Declare newTransaction here
+  const [isLoading, setIsLoading] = useState(false)
+  const [tradeType, setTradeType] = useState<"LONG" | "SHORT">("LONG")
+  let newTransaction: Transaction
 
   async function executeTrade() {
     try {
+      setIsLoading(true)
       newTransaction = {
-        // Assign value to newTransaction
         id: Date.now().toString(),
         state: "initiated",
         asset,
         amount,
         timestamp: new Date().toISOString(),
+        type: tradeType,
       }
       onTradeExecuted(newTransaction)
 
-      // Simulate trade execution process
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      onTradeExecuted({ ...newTransaction, state: "in_progress" })
+      // Simulate API call to backend
+      const response = await fetch('/api/trade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          asset,
+          amount: parseFloat(amount),
+          stopLoss: parseFloat(stopLoss),
+          isAiAssisted: aiAssisted,
+          type: tradeType,
+        }),
+      });
 
-      if (aiAssisted) {
-        // TODO: Implement AI-assisted trade execution
-        console.log("Executing AI-assisted trade:", { asset, amount, stopLoss })
-      } else {
-        // TODO: Implement manual trade execution logic using ethers.js
-        console.log("Executing manual trade:", { asset, amount, stopLoss })
+      if (!response.ok) {
+        throw new Error('Trade execution failed');
       }
 
-      // Simulate trade completion
-      await new Promise((resolve) => setTimeout(resolve, 3000))
       onTradeExecuted({ ...newTransaction, state: "completed" })
     } catch (error) {
       console.error("Error executing trade:", error)
       onTradeExecuted({ ...newTransaction, state: "failed" })
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
-    <Card>
+    <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle>Execute Trade</CardTitle>
       </CardHeader>
@@ -66,28 +84,46 @@ export function TradeExecutionPanel({ onTradeExecuted }: TradeExecutionPanelProp
           className="space-y-4"
         >
           <div className="space-y-2">
-            <Label htmlFor="asset">Asset</Label>
+            <Label htmlFor="asset">Trading Pair</Label>
             <Select value={asset} onValueChange={setAsset}>
               <SelectTrigger id="asset">
-                <SelectValue placeholder="Select asset" />
+                <SelectValue placeholder="Select trading pair" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="AVAX">AVAX</SelectItem>
-                <SelectItem value="USDC">USDC</SelectItem>
+                <SelectItem value="AVAX">AVAX-USDC</SelectItem>
+                <SelectItem value="ETH">ETH-USDC</SelectItem>
+                <SelectItem value="BTC">BTC-USDC</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="tradeType">Position Type</Label>
+            <Select value={tradeType} onValueChange={(value: "LONG" | "SHORT") => setTradeType(value)}>
+              <SelectTrigger id="tradeType">
+                <SelectValue placeholder="Select position type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="LONG">Long</SelectItem>
+                <SelectItem value="SHORT">Short</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="amount">Size (USDC)</Label>
             <Input
               type="number"
               id="amount"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter amount"
+              placeholder="Enter position size"
               required
+              min="0"
+              step="0.01"
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="stopLoss">Stop-Loss Price</Label>
             <Input
@@ -97,8 +133,11 @@ export function TradeExecutionPanel({ onTradeExecuted }: TradeExecutionPanelProp
               onChange={(e) => setStopLoss(e.target.value)}
               placeholder="Enter stop-loss price"
               required
+              min="0"
+              step="0.01"
             />
           </div>
+
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
@@ -112,8 +151,12 @@ export function TradeExecutionPanel({ onTradeExecuted }: TradeExecutionPanelProp
         </form>
       </CardContent>
       <CardFooter>
-        <Button onClick={executeTrade} className="w-full">
-          {aiAssisted ? "Execute AI-Assisted Trade" : "Execute Manual Trade"}
+        <Button 
+          onClick={executeTrade} 
+          className="w-full" 
+          disabled={isLoading}
+        >
+          {isLoading ? "Executing Trade..." : (aiAssisted ? "Execute AI-Assisted Trade" : "Execute Manual Trade")}
         </Button>
       </CardFooter>
     </Card>

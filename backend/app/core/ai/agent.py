@@ -60,7 +60,36 @@ class AIAgent:
 
     def parse_trade_message(self, message: str) -> Optional[Dict]:
         """Parse natural language message to extract trading information."""
-        # Common patterns for buy/sell operations
+        # Pattern for position opening with leverage
+        position_pattern = r'(?i)(?:open|create|start)\s+(?:a\s+)?(?:(\d+)x\s+)?(long|short)\s+(?:position\s+)?(?:on\s+)?AVAX\s+(?:with|for|using)\s+(\d+(?:\.\d+)?)\s*USDC'
+        
+        # Pattern for position closing
+        close_pattern = r'(?i)(?:close|exit|end)\s+(?:the\s+)?(?:AVAX\s+)?(long|short)?\s*(?:position)?'
+        
+        # Check position opening pattern
+        position_match = re.search(position_pattern, message)
+        if position_match:
+            leverage, position_type, amount = position_match.groups()
+            return {
+                "operation_type": "open_position",
+                "position_type": position_type.lower(),
+                "leverage": int(leverage) if leverage else 1,
+                "token_pair": "AVAX/USDC",
+                "amount": amount,
+                "currency": "USDC"
+            }
+
+        # Check position closing pattern
+        close_match = re.search(close_pattern, message)
+        if close_match:
+            position_type = close_match.group(1)
+            return {
+                "operation_type": "close_position",
+                "position_type": position_type.lower() if position_type else None,
+                "token_pair": "AVAX/USDC"
+            }
+
+        # Common patterns for spot buy/sell operations
         buy_patterns = [
             r'(?i)(?:buy|purchase|get)\s+(?:(\d+(?:\.\d+)?)\s+)?AVAX(?:\s+(?:with|for|using)\s+(\d+(?:\.\d+)?)\s*USDC)?',
             r'(?i)(?:spend|use)\s+(\d+(?:\.\d+)?)\s*USDC(?:\s+(?:on|for|to get)\s+(?:(\d+(?:\.\d+)?)\s+)?AVAX)?'
@@ -77,10 +106,11 @@ class AIAgent:
             if match:
                 groups = match.groups()
                 return {
-                    "operation_type": "buy",
+                    "operation_type": "spot_buy",
                     "token_pair": "AVAX/USDC",
                     "amount": groups[1] if groups[1] else groups[0],  # USDC amount if specified
-                    "target_amount": groups[0] if groups[1] else None  # AVAX amount if specified
+                    "target_amount": groups[0] if groups[1] else None,  # AVAX amount if specified
+                    "currency": "USDC"
                 }
 
         # Check sell patterns
@@ -89,14 +119,15 @@ class AIAgent:
             if match:
                 groups = match.groups()
                 return {
-                    "operation_type": "sell",
+                    "operation_type": "spot_sell",
                     "token_pair": "AVAX/USDC",
                     "amount": groups[0],  # AVAX amount
-                    "target_amount": groups[1]  # USDC amount if specified
+                    "target_amount": groups[1],  # USDC amount if specified
+                    "currency": "AVAX"
                 }
 
         # If no specific trade operation is found, treat as analysis
-        if any(word in message.lower() for word in ["price", "analysis", "market", "trend", "chart"]):
+        if any(word in message.lower() for word in ["price", "analysis", "market", "trend", "chart", "position", "liquidation"]):
             return {
                 "operation_type": "analyze",
                 "token_pair": "AVAX/USDC"
@@ -107,15 +138,31 @@ class AIAgent:
     async def process_message(self, user_message: str, context: Optional[Dict] = None) -> str:
         logger.info(f"Processing message: {user_message[:50]}...")
         # Try to parse trading information from the message if no context is provided
+        parsed_trade = None
         if not context:
-            parsed_context = self.parse_trade_message(user_message)
-            if parsed_context:
-                context = parsed_context
+            parsed_trade = self.parse_trade_message(user_message)
+            if parsed_trade:
+                context = parsed_trade
                 logger.info(f"Parsed context: {context}")
+                
                 # Add parsed information to the message for clarity
-                user_message += f"\n[Detected Operation: {parsed_context['operation_type'].upper()}]"
-                if parsed_context.get('amount'):
-                    user_message += f"\n[Amount: {parsed_context['amount']}]"
+                trade_info = [f"[Detected Operation: {parsed_trade['operation_type'].upper()}]"]
+                
+                if parsed_trade.get('position_type'):
+                    trade_info.append(f"[Position Type: {parsed_trade['position_type'].upper()}]")
+                
+                if parsed_trade.get('leverage'):
+                    trade_info.append(f"[Leverage: {parsed_trade['leverage']}x]")
+                
+                if parsed_trade.get('amount'):
+                    currency = parsed_trade.get('currency', 'USDC')
+                    trade_info.append(f"[Amount: {parsed_trade['amount']} {currency}]")
+                
+                if parsed_trade.get('target_amount'):
+                    target_currency = 'AVAX' if parsed_trade.get('currency') == 'USDC' else 'USDC'
+                    trade_info.append(f"[Target Amount: {parsed_trade['target_amount']} {target_currency}]")
+                
+                user_message += "\n" + "\n".join(trade_info)
 
         # Add user message to conversation history
         self.conversation_history.append(Message("user", user_message))
@@ -141,6 +188,11 @@ class AIAgent:
             # Extract and store assistant's response
             assistant_message = completion.choices[0].message.content
             logger.info("Received response from OpenAI")
+            
+            # If trade was parsed, add confirmation request
+            if parsed_trade:
+                assistant_message += "\n\nWould you like me to execute this trade? Please confirm with 'yes' to proceed."
+                
             self.conversation_history.append(Message("assistant", assistant_message))
             
             return assistant_message
