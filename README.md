@@ -65,7 +65,7 @@ HOST=0.0.0.0
 PORT=8000
 
 # OpenAI Configuration
-OPENAI_API_KEY=your-openai-api-key-here
+OPENAI_API_KEY=your-openai-api-key
 ```
 Replace `your-openai-api-key-here` with your actual OpenAI API key.
 
@@ -198,3 +198,13 @@ WEB3_PROVIDER_URL=https://arb1.arbitrum.io/rpc
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Dashboard Preview
+![ETH_OX Dashboard](./docs/assets/dashboard-preview.png)
+
+The ETH_OX dashboard provides:
+- Real-time DeFi position tracking with P&L monitoring
+- AI-powered trading assistant with natural language interface
+- Smart recommendations for stop-loss and take-profit levels
+- Risk level assessment and market analysis
+- Position leverage management
